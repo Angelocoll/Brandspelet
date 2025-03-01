@@ -246,7 +246,7 @@ export default function BrandMap() {
   const [question, setQuestion] = useState(null);
   const [askedStreets, setAskedStreets] = useState([]);
   const [gameOver, setGameOver] = useState(false);
-  const [timer, setTimer] = useState(30);
+  const [timer, setTimer] = useState(50);
   const [milliseconds, setMilliseconds] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
@@ -254,6 +254,8 @@ export default function BrandMap() {
   const [score, setScore] = useState(0); // För att hålla koll på poäng
   const timerRef = useRef(null);
   const [lastGuessedStreet, setLastGuessedStreet] = useState(null)
+  const [wrongGuesses, setWrongGuesses] = useState(0);
+  const [openPopups, setOpenPopups] = useState({});
 
   // Funktion för att stänga alla popups
   const CloseAllPopups = () => {
@@ -265,7 +267,7 @@ export default function BrandMap() {
 
   // Starta om timern när en ny fråga ställs
   const startTimer = () => {
-    setTimer(30);
+    setTimer(50);
     setMilliseconds(0);
     setTimerRunning(true);
   };
@@ -319,12 +321,21 @@ export default function BrandMap() {
     };
   }, [timerRunning, askedStreets, question]);
 
-  // Stäng alla popups när vi byter fråga
   useEffect(() => {
     if (question) {
       CloseAllPopups();
-      setMarkerColors({});
-      setSelectedStreet(null);  
+      setMarkerColors((prevColors) => {
+        const newColors = {};
+        Object.keys(prevColors).forEach((streetName) => {
+          if (prevColors[streetName] === "green") {
+            newColors[streetName] = "green"; // Behåll gröna markörer
+          } else {
+            newColors[streetName] = "grey"; // Återställ andra till grå
+          }
+        });
+        return newColors;
+      });
+      setSelectedStreet(null);
       setLastGuessedStreet(null);
     }
   }, [question]);
@@ -342,6 +353,7 @@ export default function BrandMap() {
       setSelectedStreet(street);
       setShowCorrectStreet(true);
       setLastGuessedStreet(null);
+      setWrongGuesses(0);
       setMarkerColors((prevColors) => ({
         ...prevColors,
         [street.name]: "green", // Grön färg för rätt svar
@@ -368,33 +380,48 @@ export default function BrandMap() {
           setQuestion(`${randomStreet.name}`);
           startTimer(); // Starta om timern för nästa fråga
         }
-      }, 3000);
+      }, 5000);
     } else {
+        setWrongGuesses((prevGuesses) => prevGuesses + 1);
         setLastGuessedStreet(street);
       setMarkerColors((prevColors) => ({
         ...prevColors,
         [street.name]: "red",
       }));
-      setTimeout(() => {
-        const correctStreet = question.replace("").trim();
-        const newAskedStreets = [...askedStreets, correctStreet];
-        setAskedStreets(newAskedStreets);
-  
-        if (newAskedStreets.length === streets.length) {
-          setGameOver(true);
-        } else {
-          CloseAllPopups();
-          const remainingStreets = streets.filter(street => !newAskedStreets.includes(street.name));
-          const randomStreet = remainingStreets[Math.floor(Math.random() * remainingStreets.length)];
-          setQuestion(`${randomStreet.name}`);
-          startTimer(); // Starta om timern för nästa fråga
-        }
-      }, 3000);
-  
-      setMarkerColors((prevColors) => ({
-        ...prevColors,
-        [street.name]: "red", // Röd färg för fel svar
-      }));
+      if (wrongGuesses >= 2) {
+        setWrongGuesses(0); // Återställ felaktiga gissningar
+        setTimeout(() => {
+          const correctStreet = question.replace("").trim();
+          const newAskedStreets = [...askedStreets, correctStreet];
+          setAskedStreets(newAskedStreets);
+
+          if (newAskedStreets.length === streets.length) {
+            setGameOver(true); // När alla gator är besvarade
+          } else {
+            CloseAllPopups();
+            const remainingStreets = streets.filter(street => !newAskedStreets.includes(street.name));
+            const randomStreet = remainingStreets[Math.floor(Math.random() * remainingStreets.length)];
+            setQuestion(`${randomStreet.name}`);
+            startTimer(); // Starta om timern för nästa fråga
+          }
+        }, 5000);
+      } else {
+        setTimeout(() => {
+          setLastGuessedStreet(null);
+          
+          setMarkerColors((prevColors) => { // Lägg till prevColors som en parameter här
+            if (prevColors[street.name] === "red") {
+              return {
+                ...prevColors,
+                [street.name]: "grey",
+              };
+            }
+            return prevColors; // Returnera oförändrat prevColors om färgen inte är röd
+          });
+            
+          startTimer(); // Starta om timern för nästa gissning
+        }, 2000);
+      }
     }
   };
   
@@ -449,7 +476,7 @@ export default function BrandMap() {
             {question}  
           </h2>
             <h2   style={{
-              color: timer < 10 ? "red" : timer < 20 ? "yellow" : "white",
+              color: timer < 15 ? "red" : timer < 30 ? "yellow" : "white",
             }}>
             {timer} sekunder - Kvar
             </h2>
@@ -462,7 +489,7 @@ export default function BrandMap() {
         style={{ height: "80vh", width: "100vw",
          }}
       >
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <TileLayer url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png" />
 
         {streets.map((street, index) => (
           <Marker
