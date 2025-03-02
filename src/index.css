@@ -73,6 +73,7 @@ button:focus-visible {
 }
 h3 {
   margin: 10px;
+  color: white;
 }
 
 @media (prefers-color-scheme: light) {
