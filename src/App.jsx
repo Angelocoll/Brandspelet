@@ -1,12 +1,29 @@
 import React from "react";
-import ReactDOM from "react-dom/client";
-import BrandMap from "./Component/BrandMap";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import LoginPage from "./Pages/LoginPage";
+import AdminPage from "./Pages/AdminPage";
+
+const isAuthenticated = () => {
+  return localStorage.getItem('auth') === 'true';
+};
+
+
+const PrivateRoute = ({ element, ...rest }) => {
+  return isAuthenticated() ? (
+    element
+  ) : (
+    <Navigate to="/" replace /> 
+  );
+};
 
 function App() {
   return (
-    <div>
-      <BrandMap />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/Admin" element={<PrivateRoute element={<AdminPage />} />} />
+      </Routes>
+    </Router>
   );
 }
 

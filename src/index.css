@@ -12,6 +12,15 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
 
 a {
   font-weight: 500;
@@ -28,7 +37,7 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #213547;
+  background-color: #000000;
 }
 
 h1 {
@@ -38,6 +47,9 @@ h1 {
 }
 h2 {
   color: white;
+}
+#root > .fade {
+  animation: FadeIn 3s ease-out forwards;
 }
 
 button {
@@ -69,11 +81,15 @@ button:focus-visible {
   align-items: center;
   flex-direction: row;
   text-align: center;
-  padding: 20px 0px 20px 0px;
+  padding: 10px 0px 20px 0px;
 }
 h3 {
   margin: 10px;
   color: white;
+}
+#start-game-button:hover {
+  background-color: #181818;
+  color: rgb(238, 238, 238);
 }
 
 @media (prefers-color-scheme: light) {
@@ -86,5 +102,27 @@ h3 {
   }
   button {
     background-color: #f9f9f9;
+  }
+}
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes FadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
