@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import MapView from "./Map/Mapview";
 import ImageSelector from "./Map/ImageSelector";
 
-
 const EditableClickListener = ({ onDataReady }) => {
   const [clickedPosition, setClickedPosition] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
@@ -36,6 +35,8 @@ const EditableClickListener = ({ onDataReady }) => {
   const [imageNames, setImageNames] = useState([]);
   const [selectedImageName, setSelectedImageName] = useState("");
   const [renderedImageUrl, setRenderedImageUrl] = useState("");
+  const [Time, setTime] = useState(0);
+  const [showTimeInput, setShowTimeInput] = useState(false);
 
   const openMenu = (event) => {
     event.preventDefault();
@@ -64,17 +65,13 @@ const EditableClickListener = ({ onDataReady }) => {
     if (currentQuestionIndex < htmlTextArray.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     } else {
-      setGameCompleted(true); // Sätt spelet som slutfört
-      setIsGameStarted(false); // Stoppa spelet
+      setGameCompleted(true); 
+      setIsGameStarted(false); 
     }
   };
-
-  // Ny funktion för att visa inputfältet vid uppladdning
   const handleOpenUploadInput = () => {
     setShowUploadInput(true);
   };
-
-  // Uppdaterad handleUpload-funktion för att inkludera namnet
   const handleUpload = () => {
     const myWidget = window.cloudinary.createUploadWidget(
       {
@@ -92,10 +89,10 @@ const EditableClickListener = ({ onDataReady }) => {
           try {
             await addDoc(collection(db, "Image"), {
               url: result.info.secure_url,
-              name: imageName, // Spara namnet från inputfältet
+              name: imageName, 
             });
-            setShowUploadInput(false); // Stäng inputfältet efter uppladdning
-            setImageName(""); // Rensa namnet
+            setShowUploadInput(false); 
+            setImageName(""); 
           } catch (firestoreError) {
             console.error("Firestore: uppladdnings fel", firestoreError);
           }
@@ -139,7 +136,6 @@ const EditableClickListener = ({ onDataReady }) => {
       to: selectedImageName,
     };
 
-
     try {
       if (selectedElement && selectedElement.id) {
 
@@ -164,7 +160,6 @@ const EditableClickListener = ({ onDataReady }) => {
     }
   };
 
-
   const closePopup = () => {
     setShowPopup(false);
     setEditorContent("Enter notes here...");
@@ -183,6 +178,9 @@ const EditableClickListener = ({ onDataReady }) => {
       setHoveredElement(null);
     }
   };
+  const HandleTimer = () => {
+    setShowTimeInput(true);
+  }
 
   const execCmd = (command, value = null) => {
     if (editorRef.current) {
@@ -277,7 +275,11 @@ const EditableClickListener = ({ onDataReady }) => {
     setIsGameStarted(true);
     setCurrentQuestionIndex(0);
     setCorrectAnswers(0);
-    setTimer(120);
+    if (Time === 0 || Time === null) {
+      setTimer(120);
+    }else {
+      setTimer(Time);
+    }
     setCurrentScorePercentage(0);
     setGameCompleted(false);
     resetColorss();
@@ -304,8 +306,8 @@ const EditableClickListener = ({ onDataReady }) => {
   }, [isGameStarted, timer, correctAnswers, htmlTextArray.length, gameCompleted]);
 
   const getTimerColor = () => {
-    if (timer < 30) return "red";
-    if (timer < 60) return "yellow";
+    if (timer < 10) return "red";
+    if (timer < 30) return "yellow";
     return "lightgreen";
   };
 
@@ -314,18 +316,24 @@ const EditableClickListener = ({ onDataReady }) => {
       const correctAnswer = htmlTextArray[currentQuestionIndex];
       const userAnswer = data.htmlText;
 
-      const totalQuestions = htmlTextArray.length;
-      const currentCorrect = userAnswer === correctAnswer ? correctAnswers + 1 : correctAnswers;
-      const percentage = totalQuestions > 0 ? (currentCorrect / totalQuestions) * 100 : 0;
-      setCurrentScorePercentage(percentage);
-
-      if (userAnswer === correctAnswer) {
+      if (userAnswer === correctAnswer && wrongAttempts === 0) {
         setSavedData((prevData) =>
           prevData.map((item) =>
             item.id === data.id ? { ...item, color: "green" } : item
           )
         );
         setCorrectAnswers((prev) => prev + 1);
+        const totalQuestions = htmlTextArray.length;
+        const percentage = totalQuestions > 0 ? ((correctAnswers + 1) / totalQuestions) * 100 : 0;
+        setCurrentScorePercentage(percentage);
+        setWrongAttempts(0);
+        goToNextQuestion();
+      } else if (userAnswer === correctAnswer && wrongAttempts > 0) {
+        setSavedData((prevData) =>
+          prevData.map((item) =>
+            item.id === data.id ? { ...item, color: "lightgreen" } : item
+          )
+        );
         setWrongAttempts(0);
         goToNextQuestion();
       } else {
@@ -350,13 +358,13 @@ const EditableClickListener = ({ onDataReady }) => {
             if (correctData) {
               setSavedData((prevData) =>
                 prevData.map((item) =>
-                  item.id === correctData.id && item.color === "purple" ? { ...item, color: "rgb(169, 169, 169)" } : item
+                  item.id === correctData.id && item.color === "purple" ? { ...item, color: "rgb(0, 0, 0)" } : item
                 )
               );
             }
             resetColors();
             setWrongAttempts(0);
-          }, 5000);
+          }, 300000);
         }
       }
     }
@@ -378,7 +386,6 @@ const EditableClickListener = ({ onDataReady }) => {
 
   return (
     <Box className="fade" sx={{ width: "100%" }}>
-      {/* Bakgrundssuddighet när uppladdningsinput visas */}
       <Backdrop
         sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
         open={showUploadInput}
@@ -455,6 +462,14 @@ const EditableClickListener = ({ onDataReady }) => {
             Logout
           </Button>
           <Button
+          onClick={HandleTimer}
+          variant="outlined"
+          size="small"
+          sx={{ ml: 1, color: "white", borderColor: "white" }}
+          >
+            Set Time
+          </Button>
+          <Button
             onClick={handleOpenUploadInput}
             variant="outlined"
             size="small"
@@ -491,25 +506,28 @@ const EditableClickListener = ({ onDataReady }) => {
           <Box display={"flex"} gap={8} sx={{ zIndex: 100 }}>
             <Typography color="white" variant="h5">
               {htmlTextArray[currentQuestionIndex]}
-            </Typography>
-            <Typography
-  variant="h5"
-  sx={{
-    color: getTimerColor(),
-    animation:
-      timer < 60
-        ? "pulse 1s infinite ease-in-out"
-        : "none",
-    transition: "color 0.5s ease",
-  }}
->
-  Time: {timer}
-</Typography>
+              </Typography>
+              <Typography
+              variant="h5"
+              sx={{
+                color: getTimerColor(),
+                animation:
+                timer < 30
+                ? "pulse 1s infinite ease-in-out"
+                : "none",
+                transition: "color 0.5s ease",
+                }}
+                >
+                Time: {timer}
+                </Typography>  
+          
+            
             <Typography variant="h6" color="lightgreen">
               Points: {currentScorePercentage.toFixed(0)}%
             </Typography>
           </Box>
         )}
+        
         {gameCompleted && (
           <Box display={"flex"} gap={8} sx={{ zIndex: 100 }}>
             <Typography color="white" variant="h5">
@@ -529,7 +547,6 @@ const EditableClickListener = ({ onDataReady }) => {
           </Typography>
         )}
       </Box>
-
       <MapView
         renderedImageUrl={renderedImageUrl}
         isEditorEnabled={isEditorEnabled}
@@ -600,6 +617,57 @@ const EditableClickListener = ({ onDataReady }) => {
           <MenuItem onClick={handleCreateElement}>Create Marker</MenuItem>
         </Menu>
       )}
+{showTimeInput && (
+  <Backdrop sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={showTimeInput}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 2,
+        backgroundColor: 'white',
+        color: 'black',
+        padding: 3,
+        borderRadius: 2,
+        boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+      }}
+    >
+      <TextField
+        label="Set Timer (seconds)"
+        value={Time}
+        onChange={(e) => setTime(e.target.value)}
+        variant="outlined"
+        size="small"
+      />
+      <Box display={"flex"} gap={2}>
+        <Button
+          onClick={() => {
+            const parsedTime = parseInt(Time, 10);
+            if (!isNaN(parsedTime) && parsedTime > 0) {
+              setTimer(parsedTime);
+            } else {
+              alert("Please enter a valid positive number for the timer.");
+            }
+            setShowTimeInput(false);
+          }}
+          variant="contained"
+          color="primary"
+        >
+          Set
+        </Button>
+        <Button
+          onClick={() => setShowTimeInput(false)}
+          variant="outlined"
+          color="secondary"
+        >
+          Cancel
+        </Button>
+      </Box>
+    </Box>
+  </Backdrop>
+)}
+
       {isEditorEnabled && showPopup && localStorage.getItem("auth") === "true" && (
         <div
           className="popup-container"
@@ -681,6 +749,4 @@ const EditableClickListener = ({ onDataReady }) => {
     </Box>
   );
 };
-
-export default EditableClickListener;
-    
+export default EditableClickListener;  

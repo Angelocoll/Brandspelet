@@ -15,7 +15,7 @@ const ImageSelector = ({ imageNames, selectedImageName, handleImageNameChange })
         label="Map"
         sx={{
           '& .MuiSelect-select': {
-            minWidth: '150px', // Justera bredden efter behov
+            minWidth: '150px',
           },
           '& .MuiOutlinedInput-notchedOutline': {
             borderColor: 'white',
