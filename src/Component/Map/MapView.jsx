@@ -14,7 +14,7 @@ const MapView = ({ renderedImageUrl, isEditorEnabled, openMenu }) => {
       onContextMenu={handleRightClick}
     >
       {renderedImageUrl && (
-        <img src={renderedImageUrl} alt="Rendered Map" style={{ maxWidth: '100%', height: 'auto', userSelect: 'none' }} />
+        <img src={renderedImageUrl} alt="Rendered Map" style={{ width: '100%', height: 'auto', userSelect: 'none' }} />
       )}
     </Box>
   );

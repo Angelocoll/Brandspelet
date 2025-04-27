@@ -390,7 +390,7 @@ const EditableClickListener = ({ onDataReady }) => {
             alignItems: 'center',
             justifyContent: 'center',
             gap: 2,
-            backgroundImage: 'linear-gradient(180deg, rgb(255, 255, 255) 0%, rgb(132, 132, 132) 50%, rgb(0, 0, 0) 100%)',
+            backgroundColor: 'white',
             color: 'white',
             padding: 3,
             borderRadius: 2,
@@ -398,7 +398,7 @@ const EditableClickListener = ({ onDataReady }) => {
           }}
         >
           <TextField
-            label="District Name"
+            label="Map Name (Valfritt)"
             value={imageName}
             onChange={(e) => setImageName(e.target.value)}
             variant="outlined"
@@ -409,7 +409,7 @@ const EditableClickListener = ({ onDataReady }) => {
           <Button onClick={handleUpload} variant="contained" color="primary" sx={{ backgroundColor: "black" }}>
             Done
           </Button>
-          <Button onClick={() => setShowUploadInput(false)} variant="outlined" color="white">
+          <Button onClick={() => setShowUploadInput(false)} variant="outlined" color="secondary" sx={{ color: "red", borderColor: "red" }}>
             Cancel
           </Button>
           </Box>
@@ -430,7 +430,7 @@ const EditableClickListener = ({ onDataReady }) => {
       >
         <Box display="flex" alignItems="center" flexDirection="row">
           <Typography color="white" variant="body1" mr={1}>
-            Markers Control:
+          Edit Mode:
           </Typography>
           <Switch
             checked={isEditorEnabled}
@@ -597,7 +597,7 @@ const EditableClickListener = ({ onDataReady }) => {
             left: (clickedPosition.x / 100) * window.innerWidth,
           }}
         >
-          <MenuItem onClick={handleCreateElement}>Edit Helpbox</MenuItem>
+          <MenuItem onClick={handleCreateElement}>Create Marker</MenuItem>
         </Menu>
       )}
       {isEditorEnabled && showPopup && localStorage.getItem("auth") === "true" && (
@@ -628,8 +628,8 @@ const EditableClickListener = ({ onDataReady }) => {
             }}
             style={{
               width: "100%",
-              background: "linear-gradient(0, #6d0000, #333)",
-              color: "white",
+              background: "white",
+              color: "black",
               border: "none",
               padding: "10px",
               height: "40vh",
@@ -674,7 +674,7 @@ const EditableClickListener = ({ onDataReady }) => {
             }
           }}
         >
-          Edit
+          Change
         </MenuItem>
         <MenuItem onClick={handleDelete}>Delete</MenuItem>
       </Menu>
