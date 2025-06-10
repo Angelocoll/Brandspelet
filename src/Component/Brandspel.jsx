@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { Box, Button, Switch, Typography, Menu, MenuItem, TextField, Backdrop, FormControl, InputLabel, Select } from "@mui/material";
 import { db, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, getDoc } from "./firebaseConfig";
 import { useNavigate } from "react-router-dom";
-import MapView from "./Map/Mapview";
-import ImageSelector from "./Map/ImageSelector";
+import MapView from "./Map/MapView.jsx";
+import ImageSelector from "./Map/ImageSelector.jsx";
 
 const EditableClickListener = ({ onDataReady }) => {
   const [clickedPosition, setClickedPosition] = useState(null);
